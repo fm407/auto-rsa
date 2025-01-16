@@ -361,13 +361,48 @@ if __name__ == "__main__":
                     "ERROR: Invalid channel ID, please check your DISCORD_CHANNEL in your .env file and try again"
                 )
                 os._exit(1)  # Special exit code to restart docker container
+            print(f"Listening to channel: {channel.name} (ID: {DISCORD_CHANNEL})")
             await channel.send("Discord bot is started...")
 
         # Process the message only if it's from the specified channel
         @bot.event
         async def on_message(message):
+            # Ignore messages from the bot itself
+            if message.author == bot.user:
+                return
+
+            # Check if the message is from the specified channel
             if message.channel.id == DISCORD_CHANNEL:
-                await bot.process_commands(message)
+                # Handle webhook messages
+                if message.webhook_id:
+                    print(f"Webhook message detected: {message.content}")
+
+                    # Handle webhook `!ping`
+                    if message.content.startswith("!ping"):
+                        await message.channel.send("pong (via webhook)")
+
+                    # Handle webhook `!rsa`
+                    elif message.content.startswith("!rsa"):
+                        args = message.content[5:].split()  # Extract arguments after '!rsa '
+                        try:
+                            discOrdObj = await bot.loop.run_in_executor(None, argParser, args)
+                            event_loop = asyncio.get_event_loop()
+                            if discOrdObj.get_holdings():
+                                await bot.loop.run_in_executor(
+                                    None, fun_run, discOrdObj, ("_init", "_holdings"), bot, event_loop
+                                )
+                            else:
+                                await bot.loop.run_in_executor(
+                                    None, fun_run, discOrdObj, ("_init", "_transaction"), bot, event_loop
+                                )
+                            await message.channel.send("RSA command executed successfully (via webhook).")
+                        except Exception as err:
+                            print(traceback.format_exc())
+                            await message.channel.send(f"Error executing RSA command (via webhook): {err}")
+
+                # Handle regular user messages (non-webhook)
+                else:
+                    await bot.process_commands(message)
 
         # Bot ping-pong
         @bot.command(name="ping")
@@ -427,11 +462,10 @@ if __name__ == "__main__":
         @bot.command(name="restart")
         async def restart(ctx):
             print("Restarting...")
-            print()
             await ctx.send("Restarting...")
             await bot.close()
             if DOCKER_MODE:
-                os._exit(0)  # Special exit code to restart docker container
+                os._exit(0)  # Special exit code to restart the container
             else:
                 os.execv(sys.executable, [sys.executable] + sys.argv)
 
@@ -440,7 +474,6 @@ if __name__ == "__main__":
         async def on_command_error(ctx, error):
             print(f"Command Error: {error}")
             await ctx.send(f"Command Error: {error}")
-            # Print help command
             print("Type '!help' for a list of commands")
             await ctx.send("Type '!help' for a list of commands")
 

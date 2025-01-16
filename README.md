@@ -30,7 +30,7 @@ There are two ways to use this program: as a Discord bot or as a CLI tool. The s
 1. Install `git` for your operating system.
 2. Clone this repository and cd into it:
 ```bash
-git clone https://github.com/NelsonDane/auto-rsa.git
+git clone https://github.com/fm407/auto-rsa.git
 cd auto-rsa
 ```
 3. Copy the `.env.example` file to a new file called `.env`:

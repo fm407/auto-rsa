@@ -406,7 +406,7 @@ def updater():
     except git.exc.InvalidGitRepositoryError:
         # If downloaded as zip, repo won't exist, so create it
         repo = git.Repo.init(".")
-        repo.create_remote("origin", "https://github.com/NelsonDane/auto-rsa")
+        repo.create_remote("origin", "https://github.com/fm407/auto-rsa")
         repo.remotes.origin.fetch()
         # Always create main branch
         repo.create_head("main", repo.remotes.origin.refs.main)

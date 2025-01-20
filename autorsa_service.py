@@ -1,6 +1,6 @@
 # Windows service for auto-rsa (discord)
 # pip install pywin32
-# pip autorsa_service.py install 
+# python autorsa_service.py install 
 
 import win32serviceutil
 import win32service
